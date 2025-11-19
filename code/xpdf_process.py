@@ -23,7 +23,7 @@ import matplotlib.patches as patches
 import scipy.misc
 import re
 from lxml import etree
-from selenium import webdriver
+# from selenium import webdriver
 from pdf_info import pdf_info
 
 

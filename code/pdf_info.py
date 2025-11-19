@@ -4,10 +4,7 @@ info={
 filename, height, width, page_no, figure_est_no, layout_bbox, text_mask
 }
 '''
-from selenium import webdriver
-from multiprocessing import Pool, TimeoutError
-import time
-import os
+# from selenium import webdriver
 import json
 import numpy as np
 import matplotlib.pyplot as plt
