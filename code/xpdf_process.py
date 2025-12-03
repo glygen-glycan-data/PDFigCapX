@@ -12,33 +12,37 @@ The main code for figure and caption extraction (figures_captions_list)
 
 '''
 
-import subprocess
+# import subprocess
 import os
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import sys
 import cv2
-import codecs
-import matplotlib.patches as patches
-import scipy.misc
+from .pdf_info import pdf_info
+# import codecs
+# import matplotlib.patches as patches
+# import scipy.misc
 import re
-from lxml import etree
+# from lxml import etree
 # from selenium import webdriver
-from pdf_info import pdf_info
 
 
 
-def figures_captions_list(input_path, pdf, output_path):
+def figures_captions_list(pdf_path):
 # input: single pdf file
 # output: bounding box list of figures and captions
-    pdf_filename = input_path + pdf
-    html_file_path = output_path + pdf[:-4]
+    # pdf_filename = os.path.join(input_path, pdf)
+    # originally html_file was meant to store all the information obtained after rendering the pdf into
+    # html - but instead fitz module is being used to get all the relevant parts of the pdf file
+    basename = os.path.splitext(os.path.basename(pdf_path))[0]
+    output_path = pdf_path.rsplit('.')[0]
+    # html_file_path = os.path.join(output_path, basename)
 # 1. Read pdfs from input folder  (pdf_info)
-    info, html_boxes = pdf_info(html_file_path, pdf)
+    info, html_boxes = pdf_info(output_path, pdf_path)
 #  2.1. graphical content detection
-    cap_box, fig_box, info, table_box, text_box = box_detection(html_file_path, info, html_boxes)
+    cap_box, fig_box, info, table_box, text_box = box_detection(output_path, info, html_boxes)
     pre_figures, cap_regions = fig_cap_matching(cap_box, fig_box, info, table_box, text_box)
-    figures, captions = evaluation(pre_figures, cap_regions, html_file_path, info, html_boxes) # Remove figure_table and figure caption in one box
+    figures, captions = evaluation(pre_figures, cap_regions, output_path, info, html_boxes) # Remove figure_table and figure caption in one box
     figures, captions = check_region(info, figures, captions)
     no_of_figures = sum([len(figures[x]) for x in figures])
     no_of_caps = sum([len(cap_box[x]) for x in cap_box])
@@ -87,7 +91,7 @@ def figures_captions_list(input_path, pdf, output_path):
 
 
 
-def box_detection(html_file_path, info, html_boxes):
+def box_detection(output_path, info, html_boxes):
     fig_box = {}
     cap_box = {}
     word_box = {}
@@ -95,11 +99,11 @@ def box_detection(html_file_path, info, html_boxes):
     table_box={}
     #browser = webdriver.Chrome('/home/pengyuan/Documents/FC_extraction/chromedriver')
 
-    for page in sorted(os.listdir(html_file_path)):
+    for page in sorted(os.listdir(output_path)):
         if page.endswith('.png') and page.startswith('page'):
         
             page_no = int(page[4:-4])
-            img = cv2.imread(html_file_path + '/' + page)
+            img = cv2.imread(output_path + '/' + page)
             # plt.imshow(img)
             png_size = img.shape
             if png_size[0] > png_size[1]:
@@ -522,7 +526,7 @@ def label_subfig(info, figures, cap_regions, table_box):
 
     return fig_merged
 
-def evaluation(prefigures, cap_regions, html_file_path, info, html_boxes):
+def evaluation(prefigures, cap_regions, output_path, info, html_boxes):
 
     fig_cap_pair = prefigures
     figures = {}
